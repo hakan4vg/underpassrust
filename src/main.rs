@@ -1,5 +1,6 @@
 mod helloworld;
 mod basiccalculator;
+mod guessnumber;
 
 use std::io::{self, Write};
 
