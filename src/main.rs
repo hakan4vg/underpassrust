@@ -1,6 +1,7 @@
 mod helloworld;
 mod basiccalculator;
 mod guessnumber;
+mod fileio;
 
 use std::io::{self, Write};
 
@@ -15,7 +16,7 @@ fn main() {
 
     //Holy shit working with castings and flushes are hard!
     loop{
-        print!("Select code snippet: 1-Basic Calculator, 2-Guess Number, 3-Exit: ");
+        print!("Select code snippet: 1-Basic Calculator, 2-Guess Number, 3-Read file contents, 4-Exit: ");
         io::stdout().flush().expect("Failed to flush stdout");
         let selection_input = read_input();
         let selection_input: u32 = match selection_input.trim().parse(){
@@ -85,6 +86,9 @@ fn main() {
             guessnumber::guess();
         }
         else if selection_input == 3{
+            fileio::read_file();
+        }
+        else if selection_input == 4{
             break;
         }
         else {
