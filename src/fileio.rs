@@ -31,3 +31,31 @@ pub fn read_file(){
     }
 
 }
+
+fn create_file(path: &str) -> File {
+    let file = File::create(path).expect("Failed to create file");
+    return file;
+
+}
+fn read_message() -> String {
+    let mut message = String::new();
+    print!("Enter message to write to file: ");
+    io::stdout().flush().expect("Failed to flush stdout");
+
+    io::stdin().read_line(&mut message).expect("Failed to read line");
+    return message;
+}
+pub fn write_into_file(){
+    print!("Enter file path to write to: ");
+    io::stdout().flush().expect("Failed to flush stdout");
+    let path = read_input();
+
+    let mut file = match File::open(&path) {
+        Ok(file) => file,
+        Err(_) => create_file(&path),
+    };
+
+    let message = read_message();
+    file.write_all(message.as_bytes()).expect("Failed to write to file");
+    println!("Message written to file successfully!");
+}
