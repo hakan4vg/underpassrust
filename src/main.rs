@@ -3,13 +3,19 @@ mod basiccalculator;
 mod guessnumber;
 mod fileio;
 mod menu;
+mod errorlog;
 
 use std::io::{self, Write};
 use menu::get_menu_options;
+use crate::errorlog::log_error;
 
 fn read_input() -> String{
     let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Failed to read input");
+    io::stdin().read_line(&mut input)
+        .unwrap_or_else(|_| {
+            log_error("Failed to read line");
+            0
+        });
     input.trim().to_string()
 }
 fn main() {
@@ -20,14 +26,17 @@ fn main() {
             println!("{} - {}", option.number, option.description);
         }
         print!("Select code snippet: ");
-        io::stdout().flush().expect("Failed to flush stdout.");
+        // unwrap_or_else unwraps the result if Ok, executes the parantheses if Err
+        // |_| ignores the error and instead calls my function
+        io::stdout().flush().unwrap_or_else(|_| log_error("Failed to flush stdout"));
+
 
         let selection_input = read_input();
         let selection_input: u32 = match selection_input.trim().parse(){
             Ok(num) => num,
             Err(_) => {
                 println!("Please enter a valid number");
-                io::stdout().flush().expect("Failed to flush stdout.");
+                io::stdout().flush().unwrap_or_else(|_| log_error("Failed to flush stdout"));
                 continue;
             }
         };
@@ -38,7 +47,7 @@ fn main() {
             4=>{
                 loop {
                     print!("Enter operation (+, -, *, /, %, ^, !, q to quit): ");
-                    io::stdout().flush().expect("Failed to flush stdout");
+                    io::stdout().flush().unwrap_or_else(|_| log_error("Failed to flush stdout"));
 
 
                     let input = read_input();
@@ -58,15 +67,15 @@ fn main() {
 
                     if operation != '!' {
                         print!("Enter first number: ");
-                        io::stdout().flush().expect("Failed to flush stdout");
+                        io::stdout().flush().unwrap_or_else(|_| log_error("Failed to flush stdout"));
                         a = read_input().parse().expect("Please enter a valid number");
 
                         print!("Enter second number: ");
-                        io::stdout().flush().expect("Failed to flush stdout");
+                        io::stdout().flush().unwrap_or_else(|_| log_error("Failed to flush stdout"));
                         b = read_input().parse().expect("Please enter a valid number");
                     } else {
                         print!("Enter number: ");
-                        io::stdout().flush().expect("Failed to flush stdout");
+                        io::stdout().flush().unwrap_or_else(|_| log_error("Failed to flush stdout"));
                         a = read_input().parse().expect("Please enter a valid number");
                         b = 0; // b is not used in factorial
                     }
