@@ -91,7 +91,8 @@ fn main() {
             5=>{
                 let greeting = helloworld::helloworld();
                 println!("{}", greeting);}
-            6=>{break;}
+            6=>{fileio::append_to_file();}
+            7=>{break;}
             _ => {println!("Invalid selection. Please enter a valid selection.");}
         }
     }

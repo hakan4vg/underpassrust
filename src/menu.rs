@@ -10,6 +10,7 @@ pub fn get_menu_options() -> Vec<MenuOption>{
         MenuOption{number: 3, description: "Write to file"},
         MenuOption{number: 4, description: "Basic calculator"},
         MenuOption{number: 5, description: "Hello world"},
-        MenuOption{number: 6, description: "Exit"}
+        MenuOption{number: 6, description: "Append to file"},
+        MenuOption{number: 7, description: "Exit"}
     ]
 }

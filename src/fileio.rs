@@ -2,7 +2,7 @@
 
 use std::io;
 use std::io::Write;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::Read;
 use crate::read_input;
 
@@ -32,11 +32,11 @@ pub fn read_file(){
 
 }
 
-fn create_file(path: &str) -> File {
-    let file = File::create(path).expect("Failed to create file");
-    return file;
-
+fn create_file(path: &str) -> Result<File, io::Error> {
+    File::create(path)
 }
+
+
 fn read_message() -> String {
     let mut message = String::new();
     print!("Enter message to write to file: ");
@@ -52,10 +52,38 @@ pub fn write_into_file(){
 
     let mut file = match File::open(&path) {
         Ok(file) => file,
-        Err(_) => create_file(&path),
+        Err(_) => match create_file(&path) {
+            Ok(file) => file,
+            Err(e) => {
+                eprintln!("Failed to create file: {}", e);
+                return;
+            }
+        },
     };
+
 
     let message = read_message();
     file.write_all(message.as_bytes()).expect("Failed to write to file");
     println!("Message written to file successfully!");
+}
+
+pub fn append_to_file(){
+    print!("Enter file path to append to: ");
+    io::stdout().flush().expect("Failed to flush stdout");
+    let path = read_input();
+
+    let mut file = match OpenOptions::new().append(true).open(&path) {
+        Ok(file) => file,
+        Err(_) => match create_file(&path) {
+            Ok(file) => file,
+            Err(e) => {
+                eprintln!("Failed to create file: {}", e);
+                return;
+            }
+        },
+    };
+
+    let message = read_message();
+    file.write_all(message.as_bytes()).expect("Failed to write to file");
+    println!("Message appended to file successfully!");
 }
