@@ -10,6 +10,9 @@ use std::rc::Rc;
 
 
 use std::cell::RefCell;
+use std::io;
+use std::io::Write;
+use crate::read_input;
 //RefCell<T> is a type that provides interior mutability,
 //meaning you can mutate the data inside even if the RefCell itself is immutable.
 //This is achieved by enforcing Rust's borrowing rules at runtime rather than at compile time.
@@ -38,7 +41,7 @@ struct LinkedList<T>{
     tail: Option<Rc<RefCell<Node<T>>>>
 }
 
-impl<T> LinkedList<T>{
+impl<T: std::fmt::Debug> LinkedList<T>{
     fn new() -> Self{
         LinkedList{
             head: None,
@@ -117,3 +120,35 @@ impl<T> LinkedList<T>{
 //Methods provided by RefCell to borrow the contained value.
 //borrow gives an immutable reference to the value, while borrow_mut gives a mutable reference.
 //These methods enforce Rust's borrowing rules at runtime rather than at compile-time, allowing interior mutability.
+
+pub(crate) fn linked_list_input(){
+    let mut list = LinkedList::new();
+    let mut option = 0;
+    while option!=-1{
+        println!("1. Append\n2. Delete\n3. Print\n-1. Exit");
+        option = read_input().trim().parse().unwrap();
+        match option{
+            1 => {
+                print!("Enter value to append: ");
+                io::stdout().flush().unwrap();
+                let value = read_input();
+                list.append(value);
+            }
+            2 => {
+                print!("Enter value to delete: ");
+                io::stdout().flush().unwrap();
+                let value = read_input();
+                list.delete(value);
+            }
+            3 => {
+                list.print_list();
+            }
+            -1 => {
+                println!("Exiting...");
+            }
+            _ => {
+                println!("Invalid option");
+            }
+        }
+    }
+}

@@ -4,6 +4,7 @@ mod guessnumber;
 mod fileio;
 mod menu;
 mod errorlog;
+mod linkedlist;
 
 use std::io::{self, Write};
 use menu::get_menu_options;
@@ -101,7 +102,8 @@ fn main() {
                 let greeting = helloworld::helloworld();
                 println!("{}", greeting);}
             6=>{fileio::append_to_file();}
-            7=>{break;}
+            7=>{linkedlist::linked_list_input();}
+            8=>{break;}
             _ => {println!("Invalid selection. Please enter a valid selection.");}
         }
     }
