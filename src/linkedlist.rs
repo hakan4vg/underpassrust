@@ -31,21 +31,20 @@ use crate::read_input;
 struct Node<T> {
     value: T,
     next: Option<Rc<RefCell<Node<T>>>>,
-    prev: Option<Rc<RefCell<Node<T>>>>
+    prev: Option<Rc<RefCell<Node<T>>>>,
 }
-
 
 #[derive(Debug)]
-struct LinkedList<T>{
+struct LinkedList<T> {
     head: Option<Rc<RefCell<Node<T>>>>,
-    tail: Option<Rc<RefCell<Node<T>>>>
+    tail: Option<Rc<RefCell<Node<T>>>>,
 }
 
-impl<T: std::fmt::Debug> LinkedList<T>{
-    fn new() -> Self{
-        LinkedList{
+impl<T: std::fmt::Debug + PartialEq + Clone> LinkedList<T> {
+    fn new() -> Self {
+        LinkedList {
             head: None,
-            tail: None
+            tail: None,
         }
     }
 
@@ -70,7 +69,37 @@ impl<T: std::fmt::Debug> LinkedList<T>{
         }
     }
 
-    fn delete(&mut self, value: T) where T: PartialEq {
+
+    fn find_index(&self, value: &T) -> Option<usize> {
+        let mut current = self.head.clone();
+        let mut index = 0;
+
+        while let Some(node) = current {
+            if node.borrow().value == *value {
+                return Some(index);
+            }
+            index += 1;
+            current = node.borrow().next.clone();
+        }
+        None
+    }
+
+
+    fn find_value(&self, index: usize) -> Option<T> {
+        let mut current = self.head.clone();
+        let mut i = 0;
+
+        while let Some(node) = current {
+            if i == index {
+                return Some(node.borrow().value.clone());
+            }
+            i += 1;
+            current = node.borrow().next.clone();
+        }
+        None
+    }
+
+    fn delete_val(&mut self, value: T) {
         let mut current = self.head.clone();
 
         while let Some(node) = current {
@@ -104,8 +133,95 @@ impl<T: std::fmt::Debug> LinkedList<T>{
         }
     }
 
+
+    fn delete_index(&mut self, index: usize) {
+        let mut current = self.head.clone();
+        let mut i = 0;
+
+        while let Some(node) = current {
+            if i == index {
+                let prev = node.borrow().prev.clone();
+                let next = node.borrow().next.clone();
+
+                match (prev, next) {
+                    (Some(prev_node), Some(next_node)) => {
+                        prev_node.borrow_mut().next = Some(next_node.clone());
+                        next_node.borrow_mut().prev = Some(prev_node.clone());
+                    }
+                    (Some(prev_node), None) => {
+                        prev_node.borrow_mut().next = None;
+                        self.tail = Some(prev_node);
+                    }
+                    (None, Some(next_node)) => {
+                        next_node.borrow_mut().prev = None;
+                        self.head = Some(next_node);
+                    }
+                    (None, None) => {
+                        self.head = None;
+                        self.tail = None;
+                    }
+                }
+                return;
+            }
+            i += 1;
+            current = node.borrow().next.clone();
+        }
+    }
+
+    fn append_after_index(&mut self, index: usize, value: T) {
+        let mut current = self.head.clone();
+        let mut i = 0;
+
+        while let Some(node) = current {
+            if i == index {
+                let new_node = Rc::new(RefCell::new(Node {
+                    value,
+                    next: node.borrow().next.clone(),
+                    prev: Some(node.clone()),
+                }));
+                let next = node.borrow().next.clone();
+                node.borrow_mut().next = Some(new_node.clone());
+                if let Some(next_node) = next {
+                    next_node.borrow_mut().prev = Some(new_node.clone());
+                } else {
+                    self.tail = Some(new_node.clone());
+                }
+                return;
+            }
+            i += 1;
+            current = node.borrow().next.clone();
+        }
+    }
+
+
+    fn append_before_index(&mut self, index: usize, value: T) {
+        let mut current = self.head.clone();
+        let mut i = 0;
+
+        while let Some(node) = current {
+            if i == index {
+                let new_node = Rc::new(RefCell::new(Node {
+                    value,
+                    next: Some(node.clone()),
+                    prev: node.borrow().prev.clone(),
+                }));
+                let prev = node.borrow().prev.clone();
+                node.borrow_mut().prev = Some(new_node.clone());
+                if let Some(prev_node) = prev {
+                    prev_node.borrow_mut().next = Some(new_node.clone());
+                } else {
+                    self.head = Some(new_node.clone());
+                }
+                return;
+            }
+            i += 1;
+            current = node.borrow().next.clone();
+        }
+    }
+
     fn print_list(&self){
         let mut current = self.head.clone();
+        println!();
         while let Some(node) = current {
             print!("{:?} -> ", node.borrow().value);
             current = node.borrow().next.clone();
@@ -125,7 +241,10 @@ pub(crate) fn linked_list_input(){
     let mut list = LinkedList::new();
     let mut option = 0;
     while option!=-1{
-        println!("1. Append\n2. Delete\n3. Print\n-1. Exit");
+        println!("\n1. Append value\n2. Delete value\n\
+        3. Delete index\n4. Find index\n5. Find value\
+        \n6. Append after index\n7. Append before index\n\
+        8. Print list\n-1. Exit");
         option = read_input().trim().parse().unwrap();
         match option{
             1 => {
@@ -138,16 +257,82 @@ pub(crate) fn linked_list_input(){
                 print!("Enter value to delete: ");
                 io::stdout().flush().unwrap();
                 let value = read_input();
-                list.delete(value);
+                list.delete_val(value);
             }
             3 => {
+                print!("Enter index to delete: ");
+                io::stdout().flush().unwrap();
+                let index = match read_input().trim().parse::<usize>() {
+                    Ok(idx) => idx,
+                    Err(_) => {
+                        println!("Invalid input. Please enter a valid index.");
+                        continue;
+                    }
+                };
+                list.delete_index(index);
+            }
+            4 => {
+                print!("Enter value to find index: ");
+                io::stdout().flush().unwrap();
+                let value = read_input();
+                match list.find_index(&value) {
+                    Some(index) => println!("Index of {} is {}", value, index),
+                    None => println!("Value not found in list"),
+                }
+            }
+            5 => {
+                print!("Enter index to find value: ");
+                io::stdout().flush().unwrap();
+                let index = match read_input().trim().parse::<usize>() {
+                    Ok(idx) => idx,
+                    Err(_) => {
+                        println!("Invalid input. Please enter a valid index.");
+                        continue;
+                    }
+                };
+                match list.find_value(index) {
+                    Some(value) => println!("Value at index {} is {}", index, value),
+                    None => println!("Index out of bounds"),
+                }
+            }
+            6=>{
+                print!("Enter index to append after: ");
+                io::stdout().flush().unwrap();
+                let index = match read_input().trim().parse::<usize>() {
+                    Ok(idx) => idx,
+                    Err(_) => {
+                        println!("Invalid input. Please enter a valid index.");
+                        continue;
+                    }
+                };
+                print!("Enter value to append: ");
+                io::stdout().flush().unwrap();
+                let value = read_input();
+                list.append_after_index(index, value);
+            }
+            7=>{
+                print!("Enter index to append before: ");
+                io::stdout().flush().unwrap();
+                let index = match read_input().trim().parse::<usize>() {
+                    Ok(idx) => idx,
+                    Err(_) => {
+                        println!("Invalid input. Please enter a valid index.");
+                        continue;
+                    }
+                };
+                print!("Enter value to append: ");
+                io::stdout().flush().unwrap();
+                let value = read_input();
+                list.append_before_index(index, value);
+            }
+            8 => {
                 list.print_list();
             }
             -1 => {
-                println!("Exiting...");
+                break;
             }
             _ => {
-                println!("Invalid option");
+                println!("Invalid option.");
             }
         }
     }
